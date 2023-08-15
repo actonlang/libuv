@@ -124,12 +124,12 @@ pub fn build(b: *std.build.Builder) void {
         }, flags.items);
     }
 
-    lib.addIncludePath("src");
-    lib.addIncludePath("include");
+    lib.addIncludePath(.{ .path = "src" });
+    lib.addIncludePath(.{ .path = "include" });
     lib.linkLibC();
 
     b.installDirectory(std.Build.InstallDirectoryOptions{
-        .source_dir = "include",
+        .source_dir = .{ .path = "include" },
         .install_dir = .header,
         .install_subdir = "",
     });
