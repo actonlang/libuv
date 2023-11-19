@@ -46,56 +46,68 @@ pub fn build(b: *std.build.Builder) void {
     }
 
 
-    lib.addCSourceFiles(&.{
-        "src/fs-poll.c",
-        "src/idna.c",
-        "src/inet.c",
-        "src/random.c",
-        "src/strscpy.c",
-        "src/strtok.c",
-        "src/threadpool.c",
-        "src/timer.c",
-        "src/uv-common.c",
-        "src/uv-data-getter-setters.c",
-        "src/version.c",
-        }, flags.items);
+    lib.addCSourceFiles(.{
+        .files = &.{
+            "src/fs-poll.c",
+            "src/idna.c",
+            "src/inet.c",
+            "src/random.c",
+            "src/strscpy.c",
+            "src/strtok.c",
+            "src/threadpool.c",
+            "src/timer.c",
+            "src/uv-common.c",
+            "src/uv-data-getter-setters.c",
+            "src/version.c",
+        },
+        .flags = flags.items
+    });
 
     if (!target.isWindows()) {
-        lib.addCSourceFiles(&.{
-            "src/unix/async.c",
-            "src/unix/core.c",
-            "src/unix/dl.c",
-            "src/unix/fs.c",
-            "src/unix/getaddrinfo.c",
-            "src/unix/getnameinfo.c",
-            "src/unix/loop-watcher.c",
-            "src/unix/loop.c",
-            "src/unix/pipe.c",
-            "src/unix/poll.c",
-            "src/unix/process.c",
-            "src/unix/random-devurandom.c",
-            "src/unix/signal.c",
-            "src/unix/stream.c",
-            "src/unix/tcp.c",
-            "src/unix/thread.c",
-            "src/unix/tty.c",
-            "src/unix/udp.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/async.c",
+                "src/unix/core.c",
+                "src/unix/dl.c",
+                "src/unix/fs.c",
+                "src/unix/getaddrinfo.c",
+                "src/unix/getnameinfo.c",
+                "src/unix/loop-watcher.c",
+                "src/unix/loop.c",
+                "src/unix/pipe.c",
+                "src/unix/poll.c",
+                "src/unix/process.c",
+                "src/unix/random-devurandom.c",
+                "src/unix/signal.c",
+                "src/unix/stream.c",
+                "src/unix/tcp.c",
+                "src/unix/thread.c",
+                "src/unix/tty.c",
+                "src/unix/udp.c",
+            },
+            .flags = flags.items
+        });
     }
 
     if (target.isLinux() or target.isDarwin()) {
-        lib.addCSourceFiles(&.{
-            "src/unix/proctitle.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/proctitle.c",
+            },
+            .flags = flags.items
+        });
     }
 
     if (target.isLinux()) {
-        lib.addCSourceFiles(&.{
-            "src/unix/linux.c",
-            "src/unix/procfs-exepath.c",
-            "src/unix/random-getrandom.c",
-            "src/unix/random-sysctl-linux.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/linux.c",
+                "src/unix/procfs-exepath.c",
+                "src/unix/random-getrandom.c",
+                "src/unix/random-sysctl-linux.c",
+            },
+            .flags = flags.items
+        });
     }
 
     if (target.isDarwin() or
@@ -104,24 +116,33 @@ pub fn build(b: *std.build.Builder) void {
         target.isFreeBSD() or
         target.isDragonFlyBSD())
     {
-        lib.addCSourceFiles(&.{
-            "src/unix/bsd-ifaddrs.c",
-            "src/unix/kqueue.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/bsd-ifaddrs.c",
+                "src/unix/kqueue.c",
+            },
+            .flags = flags.items
+        });
     }
 
     if (target.isDarwin() or target.isOpenBSD()) {
-        lib.addCSourceFiles(&.{
-            "src/unix/random-getentropy.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/random-getentropy.c",
+            },
+            .flags = flags.items
+        });
     }
 
     if (target.isDarwin()) {
-        lib.addCSourceFiles(&.{
-            "src/unix/darwin-proctitle.c",
-            "src/unix/darwin.c",
-            "src/unix/fsevents.c",
-        }, flags.items);
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/unix/darwin-proctitle.c",
+                "src/unix/darwin.c",
+                "src/unix/fsevents.c",
+            },
+            .flags = flags.items
+        });
     }
 
     lib.addIncludePath(.{ .path = "src" });
