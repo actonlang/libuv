@@ -63,7 +63,38 @@ pub fn build(b: *std.build.Builder) void {
         .flags = flags.items
     });
 
-    if (!target.isWindows()) {
+    if (target.isWindows()) {
+        lib.addCSourceFiles(.{
+            .files = &.{
+                "src/win/async.c",
+                "src/win/core.c",
+                "src/win/detect-wakeup.c",
+                "src/win/dl.c",
+                "src/win/error.c",
+                "src/win/fs.c",
+                "src/win/fs-event.c",
+                "src/win/getaddrinfo.c",
+                "src/win/getnameinfo.c",
+                "src/win/handle.c",
+                "src/win/loop-watcher.c",
+                "src/win/pipe.c",
+                "src/win/thread.c",
+                "src/win/poll.c",
+                "src/win/process.c",
+                "src/win/process-stdio.c",
+                "src/win/signal.c",
+                "src/win/snprintf.c",
+                "src/win/stream.c",
+                "src/win/tcp.c",
+                "src/win/tty.c",
+                "src/win/udp.c",
+                "src/win/util.c",
+                "src/win/winapi.c",
+                "src/win/winsock.c"
+            },
+            .flags = flags.items
+        });
+    } else {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/async.c",
@@ -147,6 +178,17 @@ pub fn build(b: *std.build.Builder) void {
 
     lib.addIncludePath(.{ .path = "src" });
     lib.addIncludePath(.{ .path = "include" });
+    if (target.isWindows()) {
+        lib.linkSystemLibrary("psapi");
+        lib.linkSystemLibrary("user32");
+        lib.linkSystemLibrary("advapi32");
+        lib.linkSystemLibrary("iphlpapi");
+        lib.linkSystemLibrary("userenv");
+        lib.linkSystemLibrary("ws2_32");
+        lib.linkSystemLibrary("dbghelp");
+        lib.linkSystemLibrary("ole32");
+        lib.linkSystemLibrary("uuid");
+    }
     lib.linkLibC();
 
     b.installDirectory(std.Build.InstallDirectoryOptions{
