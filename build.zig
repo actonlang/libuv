@@ -2,9 +2,10 @@ const std = @import("std");
 const print = @import("std").debug.print;
 const tgt = @import("builtin").target;
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
+    const t = target.result;
 
     const lib = b.addStaticLibrary(.{
         .name = "uv",
@@ -15,7 +16,7 @@ pub fn build(b: *std.build.Builder) void {
     var flags = std.ArrayList([]const u8).init(b.allocator);
     defer flags.deinit();
 
-    if (!target.isWindows()) {
+    if (t.os.tag == .windows) {
         flags.appendSlice(&.{
             "-D_FILE_OFFSET_BITS=64",
             "-D_LARGEFILE_SOURCE",
@@ -25,7 +26,7 @@ pub fn build(b: *std.build.Builder) void {
         };
     }
 
-    if (target.isLinux()) {
+    if (t.os.tag == .linux) {
         flags.appendSlice(&.{
             "-D_GNU_SOURCE",
             "-D_POSIX_C_SOURCE=200112",
@@ -35,7 +36,7 @@ pub fn build(b: *std.build.Builder) void {
         };
     }
 
-    if (target.isDarwin()) {
+    if (t.isDarwin()) {
         flags.appendSlice(&.{
             "-D_DARWIN_UNLIMITED_SELECT=1",
             "-D_DARWIN_USE_64_BIT_INODE=1",
@@ -63,7 +64,7 @@ pub fn build(b: *std.build.Builder) void {
         .flags = flags.items
     });
 
-    if (target.isWindows()) {
+    if (t.os.tag == .windows) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/win/async.c",
@@ -120,7 +121,7 @@ pub fn build(b: *std.build.Builder) void {
         });
     }
 
-    if (target.isLinux() or target.isDarwin()) {
+    if (t.os.tag == .linux or t.isDarwin()) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/proctitle.c",
@@ -129,7 +130,7 @@ pub fn build(b: *std.build.Builder) void {
         });
     }
 
-    if (target.isLinux()) {
+    if (t.os.tag == .linux) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/linux.c",
@@ -141,11 +142,8 @@ pub fn build(b: *std.build.Builder) void {
         });
     }
 
-    if (target.isDarwin() or
-        target.isOpenBSD() or
-        target.isNetBSD() or
-        target.isFreeBSD() or
-        target.isDragonFlyBSD())
+    if (t.isDarwin() or
+        t.isBSD())
     {
         lib.addCSourceFiles(.{
             .files = &.{
@@ -156,7 +154,7 @@ pub fn build(b: *std.build.Builder) void {
         });
     }
 
-    if (target.isDarwin() or target.isOpenBSD()) {
+    if (t.isDarwin() or t.os.tag == .openbsd) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/random-getentropy.c",
@@ -165,7 +163,7 @@ pub fn build(b: *std.build.Builder) void {
         });
     }
 
-    if (target.isDarwin()) {
+    if (t.isDarwin()) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/darwin-proctitle.c",
@@ -178,7 +176,7 @@ pub fn build(b: *std.build.Builder) void {
 
     lib.addIncludePath(.{ .path = "src" });
     lib.addIncludePath(.{ .path = "include" });
-    if (target.isWindows()) {
+    if (t.os.tag == .windows) {
         lib.linkSystemLibrary("psapi");
         lib.linkSystemLibrary("user32");
         lib.linkSystemLibrary("advapi32");
@@ -191,7 +189,7 @@ pub fn build(b: *std.build.Builder) void {
     }
     lib.linkLibC();
 
-    b.installDirectory(std.Build.InstallDirectoryOptions{
+    b.installDirectory(std.Build.Step.InstallDir.Options{
         .source_dir = .{ .path = "include" },
         .install_dir = .header,
         .install_subdir = "",
