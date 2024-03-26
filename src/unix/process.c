@@ -868,6 +868,13 @@ static int uv__spawn_and_init_child_fork(const uv_process_options_t* options,
   sigdelset(&signewset, SIGILL);
   sigdelset(&signewset, SIGSYS);
   sigdelset(&signewset, SIGABRT);
+  // GC uses SIGPWR & SIGXCPU
+#if defined(SIGPWR)
+  sigdelset(&signewset, SIGPWR);
+#endif
+#if defined(SIGXCPU)
+  sigdelset(&signewset, SIGXCPU);
+#endif
   if (pthread_sigmask(SIG_BLOCK, &signewset, &sigoldset) != 0)
     abort();
 
