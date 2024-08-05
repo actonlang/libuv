@@ -20,30 +20,21 @@ pub fn build(b: *std.Build) void {
         flags.appendSlice(&.{
             "-D_FILE_OFFSET_BITS=64",
             "-D_LARGEFILE_SOURCE",
-        }) catch |err| {
-            std.log.err("Error appending iterable dir: {}", .{err});
-            std.os.exit(1);
-        };
+        }) catch unreachable;
     }
 
     if (t.os.tag == .linux) {
         flags.appendSlice(&.{
             "-D_GNU_SOURCE",
             "-D_POSIX_C_SOURCE=200112",
-        }) catch |err| {
-            std.log.err("Error appending iterable dir: {}", .{err});
-            std.os.exit(1);
-        };
+        }) catch unreachable;
     }
 
     if (t.isDarwin()) {
         flags.appendSlice(&.{
             "-D_DARWIN_UNLIMITED_SELECT=1",
             "-D_DARWIN_USE_64_BIT_INODE=1",
-        }) catch |err| {
-            std.log.err("Error appending iterable dir: {}", .{err});
-            std.os.exit(1);
-        };
+        }) catch unreachable;
     }
 
 
@@ -174,8 +165,8 @@ pub fn build(b: *std.Build) void {
         });
     }
 
-    lib.addIncludePath(.{ .path = "src" });
-    lib.addIncludePath(.{ .path = "include" });
+    lib.addIncludePath(b.path("src"));
+    lib.addIncludePath(b.path("include"));
     if (t.os.tag == .windows) {
         lib.linkSystemLibrary("psapi");
         lib.linkSystemLibrary("user32");
@@ -190,7 +181,7 @@ pub fn build(b: *std.Build) void {
     lib.linkLibC();
 
     b.installDirectory(std.Build.Step.InstallDir.Options{
-        .source_dir = .{ .path = "include" },
+        .source_dir = b.path("include"),
         .install_dir = .header,
         .install_subdir = "",
     });
