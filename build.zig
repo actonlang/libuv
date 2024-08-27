@@ -180,10 +180,8 @@ pub fn build(b: *std.Build) void {
     }
     lib.linkLibC();
 
-    b.installDirectory(std.Build.Step.InstallDir.Options{
-        .source_dir = b.path("include"),
-        .install_dir = .header,
-        .install_subdir = "",
-    });
+    lib.installHeadersDirectory(b.path("include/uv"), "uv", .{});
+    lib.installHeader(b.path("include/uv.h"), "uv.h");
+
     b.installArtifact(lib);
 }
