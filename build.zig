@@ -1,6 +1,26 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const print = @import("std").debug.print;
 const tgt = @import("builtin").target;
+
+// Helper functions for Zig 0.13/0.14 compatibility
+fn targetIsDarwin(t: std.Target) bool {
+    const is_zig_0_14 = comptime builtin.zig_version.order(std.SemanticVersion.parse("0.14.0") catch unreachable) != .lt;
+    if (is_zig_0_14) {
+        return t.os.tag.isDarwin();
+    } else {
+        return t.isDarwin();
+    }
+}
+
+fn targetIsBSD(t: std.Target) bool {
+    const is_zig_0_14 = comptime builtin.zig_version.order(std.SemanticVersion.parse("0.14.0") catch unreachable) != .lt;
+    if (is_zig_0_14) {
+        return t.os.tag.isBSD();
+    } else {
+        return t.isBSD();
+    }
+}
 
 pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
@@ -21,6 +41,12 @@ pub fn build(b: *std.Build) void {
             "-D_FILE_OFFSET_BITS=64",
             "-D_LARGEFILE_SOURCE",
         }) catch unreachable;
+        if (optimize == .Debug) {
+            flags.appendSlice(&.{
+                "-U_DEBUG",
+                "-DNDEBUG",
+            }) catch unreachable;
+        }
     }
 
     if (t.os.tag == .linux) {
@@ -30,7 +56,7 @@ pub fn build(b: *std.Build) void {
         }) catch unreachable;
     }
 
-    if (t.isDarwin()) {
+    if (targetIsDarwin(t)) {
         flags.appendSlice(&.{
             "-D_DARWIN_UNLIMITED_SELECT=1",
             "-D_DARWIN_USE_64_BIT_INODE=1",
@@ -112,7 +138,7 @@ pub fn build(b: *std.Build) void {
         });
     }
 
-    if (t.os.tag == .linux or t.isDarwin()) {
+    if (t.os.tag == .linux or targetIsDarwin(t)) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/proctitle.c",
@@ -133,8 +159,8 @@ pub fn build(b: *std.Build) void {
         });
     }
 
-    if (t.isDarwin() or
-        t.isBSD())
+    if (targetIsDarwin(t) or
+        targetIsBSD(t))
     {
         lib.addCSourceFiles(.{
             .files = &.{
@@ -145,7 +171,7 @@ pub fn build(b: *std.Build) void {
         });
     }
 
-    if (t.isDarwin() or t.os.tag == .openbsd) {
+    if (targetIsDarwin(t) or t.os.tag == .openbsd) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/random-getentropy.c",
@@ -154,7 +180,7 @@ pub fn build(b: *std.Build) void {
         });
     }
 
-    if (t.isDarwin()) {
+    if (targetIsDarwin(t)) {
         lib.addCSourceFiles(.{
             .files = &.{
                 "src/unix/darwin-proctitle.c",
