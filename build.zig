@@ -27,22 +27,25 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const t = target.result;
 
-    const lib = b.addStaticLibrary(.{
+    const lib = b.addLibrary(.{
         .name = "uv",
-        .target = target,
-        .optimize = optimize,
+        .linkage = .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
-    var flags = std.ArrayList([]const u8).init(b.allocator);
-    defer flags.deinit();
+    var flags = std.ArrayList([]const u8).empty;
+    defer flags.deinit(b.allocator);
 
     if (t.os.tag == .windows) {
-        flags.appendSlice(&.{
+        flags.appendSlice(b.allocator, &.{
             "-D_FILE_OFFSET_BITS=64",
             "-D_LARGEFILE_SOURCE",
         }) catch unreachable;
         if (optimize == .Debug) {
-            flags.appendSlice(&.{
+            flags.appendSlice(b.allocator, &.{
                 "-U_DEBUG",
                 "-DNDEBUG",
             }) catch unreachable;
@@ -50,14 +53,14 @@ pub fn build(b: *std.Build) void {
     }
 
     if (t.os.tag == .linux) {
-        flags.appendSlice(&.{
+        flags.appendSlice(b.allocator, &.{
             "-D_GNU_SOURCE",
             "-D_POSIX_C_SOURCE=200112",
         }) catch unreachable;
     }
 
     if (targetIsDarwin(t)) {
-        flags.appendSlice(&.{
+        flags.appendSlice(b.allocator, &.{
             "-D_DARWIN_UNLIMITED_SELECT=1",
             "-D_DARWIN_USE_64_BIT_INODE=1",
         }) catch unreachable;
